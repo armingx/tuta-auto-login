@@ -252,6 +252,9 @@ def main():
                 break
         
         print(f"\n=== 开始登录第{account_num}个账号 ===")
+        # 打印掩码邮箱，方便在运行日志里核对本次用的是哪个账号（不暴露完整地址）
+        _local, _, _domain = email.partition('@')
+        print(f"账号{account_num} 邮箱: {_local[:5]}***@{_domain}")
         success = login_to_tuta(email, password, f"account{account_num}")
         result = f"账号{account_num}登录{'成功' if success else '失败'}"
         results.append(result)
