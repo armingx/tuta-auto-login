@@ -203,6 +203,15 @@ def login_to_tuta(email, password, account_label=""):
             return True
         else:
             print(f"登录可能不成功，URL仍包含login [{account_label}]")
+            # 抓页面提示，区分「凭证错误」与「要求人机验证 / 账号停用」
+            try:
+                body_text = ' '.join(driver.find_element(By.TAG_NAME, 'body').text.split())[:400]
+                print(f"页面提示: {body_text} [{account_label}]")
+            except Exception as e:
+                print(f"无法读取页面文本: {e} [{account_label}]")
+            page = driver.page_source.lower()
+            if 'captcha' in page or 'hcaptcha' in page:
+                print(f"检测到人机验证(captcha) [{account_label}]")
             driver.save_screenshot(f'login_verification_failed_{account_label}.png')
             return False
             
@@ -256,9 +265,9 @@ def main():
     with open('login_history.log', 'a') as f:
         f.write(log_message)
     
-    # 如果所有账号都登录失败，退出代码返回非零值
-    if results and all("失败" in result for result in results):
-        print("所有账号登录均失败")
+    # 任一账号失败就把 job 打成红色：否则部分账号静默失效（例如账号被停用/改密）无人发现
+    if any("失败" in result for result in results):
+        print("存在登录失败的账号，退出码置 1 以便 GitHub 告警")
         exit(1)
     
     print("登录过程完成")

@@ -37,7 +37,17 @@ jobs:
       - name: Run login script
         env: ${{ secrets }}
         run: python login.py
-        
+
+      # 失败时保留截图，用来分辨「密码错」还是「人机验证/账号停用」；保留 2 天避免占存储
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tuta-login-failure
+          path: '*.png'
+          retention-days: 2
+          if-no-files-found: ignore
+
       - name: Commit and push log file
         if: always()  # 无论成功失败都记录
         run: |
